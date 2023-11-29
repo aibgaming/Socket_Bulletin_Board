@@ -11,6 +11,7 @@ public class Main {
     private static BufferedReader input;
     private static String clientName = "empty";
     private static boolean inGroup = false;
+    private static volatile boolean exitRequested = false;
 
     public static void main(String[] args) {
         try (Socket socket = new Socket("localhost", 5000)){
@@ -21,7 +22,8 @@ public class Main {
             String userInput;
 
             ClientRunnable clientRun = new ClientRunnable(socket);
-            new Thread(clientRun).start();
+            Thread clientThread = new Thread(clientRun);
+            clientThread.start();
 
             do {
                 System.out.println("Enter a command:");
@@ -61,6 +63,10 @@ public class Main {
 
             } while (!userInput.equals("%exit"));
 
+            exitRequested = true; // Notify the client thread to exit
+            clientThread.join(); // Wait for the client thread to finish
+
+
         } catch (Exception e) {
             System.out.println("Exception occurred in client main: " + e.getStackTrace());
         }
@@ -85,6 +91,9 @@ public class Main {
     private static void handleJoinCommand() {
         // Implement logic to join the message board
         // Update inGroup variable accordingly
+        if(clientName.equals("empty")){
+                
+        }
     }
 
     private static void handlePostCommand(String userInput) {
@@ -95,6 +104,8 @@ public class Main {
             String subject = parts[1];
             String content = parts[2];
             // Implement logic to post the message
+            String postCommand = String.format("%post %s %s", subject, content);
+            output.println(postCommand);
         } else {
             System.out.println("Invalid %post command format.");
         }
