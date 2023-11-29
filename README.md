@@ -50,7 +50,7 @@ Follow the prompts to connect to the server and interact with the message boards
 python clientGUI.py
 ```
 
-A PySimpleGUI-based GUI client will open. Follow the prompts to connect to the server and interact with the message boards.
+A PySimpleGUI-based GUI client will open. Follow the prompts to connect to the server and interact with the message boards. This is a modified version of client.py, which is still provided just in-case.
 
 ## Commands
 
