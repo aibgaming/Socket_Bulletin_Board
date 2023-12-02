@@ -1,3 +1,4 @@
+
 # Socket Bulletin Board
 
 ## Description
@@ -6,7 +7,7 @@ This project implements a simple chat application with a server and client compo
 
 ## Features
 
-- Public Message Board
+- **Public Message Board**
   - Joining a single message board
   - Posting messages
   - Retrieving user list
@@ -14,7 +15,7 @@ This project implements a simple chat application with a server and client compo
   - Retrieving message content
   - Exiting the program
 
-- Private Message Boards
+- **Private Message Boards**
   - Joining multiple private groups
   - Posting messages to specific groups
   - Retrieving user list in a group
@@ -23,15 +24,20 @@ This project implements a simple chat application with a server and client compo
 
 ## Requirements
 
-- Python 3.x
-- PySimpleGUI (for GUI client)
+- Java
+- Any Java IDE (IntelliJ, Eclipse, etc.)
 
 ## Usage
 
 ### Server
 
 ```bash
-python server.py
+# Navigate to the server directory
+cd server
+
+# Compile and run the server
+javac Server.java
+java Server
 ```
 
 The server will start running and listening for client connections.
@@ -39,18 +45,15 @@ The server will start running and listening for client connections.
 ### Command-Line Client
 
 ```bash
-python client.py
+# Navigate to the client directory
+cd client
+
+# Compile and run the client
+javac Client.java
+java Client
 ```
 
 Follow the prompts to connect to the server and interact with the message boards.
-
-### GUI Client
-
-```bash
-python clientGUI.py
-```
-
-A PySimpleGUI-based GUI client will open. Follow the prompts to connect to the server and interact with the message boards. This is a modified version of client.py, which is still provided just in-case.
 
 ## Commands
 
@@ -61,12 +64,11 @@ A PySimpleGUI-based GUI client will open. Follow the prompts to connect to the s
 - `%groupusers <group_id>`: Retrieve a list of users in a given group.
 - `%groupleave <group_id>`: Leave a specific group.
 - `%groupmessage <group_id> <message_id>`: Retrieve the content of a message posted in a specific group.
-- `%exit`: Disconnect from the server and exit the program.
-
+- `%logout`: Disconnect from the server and exit the program.
 
 ## Contributing
 
 - Autri Ilesh Banerjee
 - Anay Joshi
 - Sethu Kruthin Nagari
----
+```

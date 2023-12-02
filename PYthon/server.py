@@ -10,7 +10,11 @@ server.bind((host, port))
 server.listen()
 clients = []
 names = []
+
+# Public group
+public_group_name = 'public'
 groups = {
+    public_group_name: {'id': 0, 'members': [], 'messages': [], 'message_id_counter': 1},
     'group1': {'id': 1, 'members': [], 'messages': [], 'message_id_counter': 1},
     'group2': {'id': 2, 'members': [], 'messages': [], 'message_id_counter': 1},
     'group3': {'id': 3, 'members': [], 'messages': [], 'message_id_counter': 1},
@@ -18,6 +22,14 @@ groups = {
     'group5': {'id': 5, 'members': [], 'messages': [], 'message_id_counter': 1},
 }
 
+
+def join_public_group(client):
+    group_name = public_group_name
+    group_members = groups[group_name]['members']
+    group_members.append(client)
+    client.send(f"You have joined {group_name}.".encode('utf-8'))
+    client.send("You are now connected!".encode('utf-8'))
+    broadcast(f"{names[clients.index(client)]} has joined {group_name}.".encode('utf-8'), group_members)
 
 def broadcast(message, group_members):
     for client in clients:
@@ -122,6 +134,7 @@ def handle_leave_command(client):
 
 
 def handle_client(client):
+    join_public_group(client)  # Automatically join the public group
     while True:
         try:
             message = client.recv(1024).decode('utf-8')
@@ -130,37 +143,49 @@ def handle_client(client):
             elif message.startswith('%'):
                 print("Message")
                 command, *args = message.split()
-                if command == '%connect' and len(args) == 2:
+                if command == f'%connect' and len(args) == 2:
                     handle_connect_command(client, args[0], int(args[1]))
-                elif command == '%groups':
+                elif command == f'%groups':
                     handle_groups_command(client)
-                elif command == '%groupjoin' and len(args) == 1:
+                elif command == f'%groupjoin' and len(args) == 1:
                     handle_groupjoin_command(client, args[0])
-                elif command == '%grouppost' and len(args) >= 2:
+                elif command == f'%grouppost' and len(args) >= 2:
                     handle_grouppost_command(client, args[0], args[1], ' '.join(args[2:]))
-                elif command == '%groupusers' and len(args) == 1:
+                elif command == f'%groupusers' and len(args) == 1:
                     handle_groupusers_command(client, args[0])
-                elif command == '%groupleave' and len(args) == 1:
+                elif command == f'%groupleave' and len(args) == 1:
                     handle_groupleave_command(client, args[0])
-                elif command == '%groupmessage' and len(args) == 2:
+                elif command == f'%groupmessage' and len(args) == 2:
                     handle_groupmessage_command(client, args[0], args[1])
-                elif command == '%exit':
+                elif command == f'%exit':
                     handle_exit_command(client)
                 else:
                     client.send("Invalid command.".encode('utf-8'))
             else:
-                broadcast(f'{names[clients.index(client)]}: {message}'.encode('utf-8'), groups[group_name]['members'])
+                broadcast(f'{names[clients.index(client)]}: {message}'.encode('utf-8'), groups[public_group_name]['members'])
+
         except ConnectionAbortedError:
-            pass
+            break  # Break out of the loop if the connection is aborted
+        except ValueError:
+            print("Client socket not found in the list.")
+            break  # Break out of the loop if the client socket is not in the list
+        except OSError as e:
+            if e.errno == 10038:
+                print("Socket operation error: Socket is not valid.")
+                break  # Break out of the loop if a socket operation error occurs
+            else:
+                print(f"Error handling client: {e}")
         except Exception as e:
             print(f"Error handling client: {e}")
         finally:
-            index = clients.index(client)
-            name = names[index]
-            clients.remove(client)
-            names.remove(name)
-            client.close()
-            broadcast(f'{name} has left the chat room!'.encode('utf-8'))
+            if client in clients:
+                index = clients.index(client)
+                name = names[index]
+                clients.remove(client)
+                names.remove(name)
+                broadcast(f'{name} has left the chat room!'.encode('utf-8'), groups[public_group_name]['members'])
+                client.close()
+                # broadcast(f'{name} has left the chat room!'.encode('utf-8'))
 
 
 def receive():
@@ -168,15 +193,15 @@ def receive():
         print('Server is running and listening ...')
         client, address = server.accept()
         print(f'Connection is established with {str(address)}')
-        client.send('name?'.encode('utf-8'))
-        name = client.recv(1024)
+        name = client.recv(1024).decode('utf-8')
         names.append(name)
         clients.append(client)
-        print(f'The name of this client is {name}'.encode('utf-8'))
+        print(f'The name of this client is {name}')
         broadcast(f'{name} has connected to the chat room'.encode('utf-8'), clients)
         client.send('You are now connected!'.encode('utf-8'))
         thread = threading.Thread(target=handle_client, args=(client,))
         thread.start()
+
 
 
 if __name__ == "__main__":
